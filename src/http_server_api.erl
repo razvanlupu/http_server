@@ -23,6 +23,8 @@ process(Req) ->
   {struct, ReqParams} = mochijson2:decode(Body),
 
   Tasks = proplists:get_value(?TASKS, ReqParams, []),
+
+  % extract a simplified version of the job (e.g. [{<<"task1">>,<<"command1">>,[<<"task2">>]},...]) 
   TaskTuples = lists:map(
       fun(TaskProplist) ->
         Name     = proplists:get_value(?COMMAND_NAME, TaskProplist),
@@ -31,7 +33,7 @@ process(Req) ->
         {Name, Command, Requires}
       end, [X || {struct, X} <- Tasks]),
 
-  Valid = validate(TaskTuples) andalso TaskTuples =/= [],
+  Valid = validate(TaskTuples) andalso TaskTuples =/= [], % keys are missing or wrongly defined
 
   case Valid of
     false -> bad_request(Req);
@@ -47,7 +49,7 @@ process(Req) ->
               _ ->
                 {struct, [{?COMMAND_NAME, N}, {?COMMAND, C}, {?REQUIRES, R}]}
             end || {N, C, R} <- SortedTasks]
-        }]},
+        }]}, % reconstruct payload in the desired format
 
       mochiweb_request:respond({200, [{"Content-Type", "application/json"}], mochijson2:encode(Response)} , Req)
   end.
@@ -79,6 +81,9 @@ validate([]) ->
 sort(Tasks) ->
   sort2([], Tasks).
 
+% recursively iterate through the list and split commands
+% in lists of executed and yet to execute commands based
+% on the requires parameter
 sort2(Acc, []) ->
   Acc;
 sort2(Acc0, Tasks) ->

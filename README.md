@@ -3,7 +3,9 @@
 - compiles source files and dependencies
 #
     start-dev.sh 
-- starts the http server on 8080 - you may see some PROCESS REPORTS but after a newline the shell should be there
+- starts the http server on 8080 - you may see some PROGRESS REPORTS but after a newline the shell should be there
+#
+    make test
 
 ##### if there are problems with the mochiweb dependency try manually having the project cloned in ./deps/ dir using the repo https://github.com/mochi/mochiweb
 
